@@ -22,7 +22,10 @@ export const generateFridayMeetings = async (months: number = 3) => {
     targetDate.setMonth(now.getMonth() + monthOffset);
 
     // Find all Fridays in this month
-    const fridays = getFridaysInMonth(targetDate.getFullYear(), targetDate.getMonth());
+    const fridays = getFridaysInMonth(
+      targetDate.getFullYear(),
+      targetDate.getMonth()
+    );
 
     fridays.forEach((friday) => {
       // Skip if the Friday is in the past
@@ -86,7 +89,11 @@ export const addMeetingsToDatabase = async (meetings: MeetingData[]) => {
         ...meeting,
       });
 
-      console.log(`Added meeting: ${meeting.title} on ${meeting.date.toLocaleDateString('ar-EG')}`);
+      console.log(
+        `Added meeting: ${meeting.title} on ${meeting.date.toLocaleDateString(
+          "ar-EG"
+        )}`
+      );
     } catch (error) {
       console.error("Error adding meeting:", error);
       throw error;
@@ -108,6 +115,19 @@ export const createSampleMeetings = async (months: number = 3) => {
     return results;
   } catch (error) {
     console.error("Error creating sample meetings:", error);
+    throw error;
+  }
+};
+
+export const createSingleMeeting = async (meetingData: MeetingData) => {
+  try {
+    console.log(`Creating single meeting: ${meetingData.title}`);
+    const results = await addMeetingsToDatabase([meetingData]);
+    console.log(`Successfully added meeting to database`);
+
+    return results[0];
+  } catch (error) {
+    console.error("Error creating single meeting:", error);
     throw error;
   }
 };

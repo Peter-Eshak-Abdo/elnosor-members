@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/app/providers";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { createSampleMeetings } from "@/lib/meeting-generator";
+import { createSampleMeetings, createSingleMeeting, MeetingData } from "@/lib/meeting-generator";
 import { useAttendance, firestoreHelpers } from "@/hooks/use-firestore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,17 @@ export default function MeetingGeneratorPage() {
     status: "scheduled",
   });
 
+  const [singleMeetingForm, setSingleMeetingForm] = useState<MeetingData>({
+    title: "اجتماع مخصص",
+    description: "اجتماع مخصص للخدام والمخدومين",
+    date: new Date(),
+    startTime: new Date(),
+    endTime: new Date(),
+    location: "قاعة الاجتماعات الرئيسية",
+    type: "regular",
+    status: "scheduled",
+  });
+
   const handleGenerateMeetings = async (months: number = 3) => {
     if (role !== "admin") {
       toast.error("يجب أن تكون مديراً لإنشاء الاجتماعات");
@@ -49,6 +60,25 @@ export default function MeetingGeneratorPage() {
     } catch (error) {
       console.error("Error generating meetings:", error);
       toast.error("خطأ في إنشاء الاجتماعات");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateSingleMeeting = async () => {
+    if (role !== "admin") {
+      toast.error("يجب أن تكون مديراً لإنشاء الاجتماعات");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const meeting = await createSingleMeeting(singleMeetingForm);
+      setGeneratedMeetings((prev) => [...prev, meeting]);
+      toast.success("تم إنشاء الاجتماع المخصص بنجاح!");
+    } catch (error) {
+      console.error("Error generating single meeting:", error);
+      toast.error("خطأ في إنشاء الاجتماع المخصص");
     } finally {
       setLoading(false);
     }
@@ -193,6 +223,192 @@ export default function MeetingGeneratorPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* New Single Meeting Generator */}
+      <Card glassy>
+        <CardHeader>
+          <CardTitle>إنشاء اجتماع مخصص</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>عنوان الاجتماع</Label>
+            <Input
+              value={singleMeetingForm.title}
+              onChange={(e) => setSingleMeetingForm({ ...singleMeetingForm, title: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>الوصف</Label>
+            <Textarea
+              value={singleMeetingForm.description}
+              onChange={(e) => setSingleMeetingForm({ ...singleMeetingForm, description: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>التاريخ</Label>
+            <Input
+              type="date"
+              value={singleMeetingForm.date.toISOString().split('T')[0]}
+              onChange={(e) => {
+                const newDate = new Date(singleMeetingForm.date);
+                const [year, month, day] = e.target.value.split('-').map(Number);
+                newDate.setFullYear(year, month - 1, day);
+                setSingleMeetingForm({ ...singleMeetingForm, date: newDate });
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>وقت البدء</Label>
+              <Input
+                type="time"
+                value={singleMeetingForm.startTime.toTimeString().slice(0, 5)}
+                onChange={(e) => {
+                  const newStart = new Date(singleMeetingForm.startTime);
+                  const [hours, minutes] = e.target.value.split(':').map(Number);
+                  newStart.setHours(hours, minutes);
+                  setSingleMeetingForm({ ...singleMeetingForm, startTime: newStart });
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>وقت الانتهاء</Label>
+              <Input
+                type="time"
+                value={singleMeetingForm.endTime.toTimeString().slice(0, 5)}
+                onChange={(e) => {
+                  const newEnd = new Date(singleMeetingForm.endTime);
+                  const [hours, minutes] = e.target.value.split(':').map(Number);
+                  newEnd.setHours(hours, minutes);
+                  setSingleMeetingForm({ ...singleMeetingForm, endTime: newEnd });
+                }}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>المكان</Label>
+            <Input
+              value={singleMeetingForm.location}
+              onChange={(e) => setSingleMeetingForm({ ...singleMeetingForm, location: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>النوع</Label>
+            <Select
+              value={singleMeetingForm.type}
+              onValueChange={(value) =>
+                setSingleMeetingForm({ ...singleMeetingForm, type: value as "regular" | "special" | "training" })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="regular">عادي</SelectItem>
+                <SelectItem value="special">خاص</SelectItem>
+                <SelectItem value="training">تدريب</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>الحالة</Label>
+            <Select
+              value={singleMeetingForm.status}
+              onValueChange={(value) =>
+                setSingleMeetingForm({ ...singleMeetingForm, status: value as "scheduled" | "completed" | "cancelled" })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">مجدول</SelectItem>
+                <SelectItem value="completed">مكتمل</SelectItem>
+                <SelectItem value="cancelled">ملغي</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleGenerateSingleMeeting} disabled={loading} className="w-full">
+            {loading ? <LoadingSpinner size="sm" /> : <Plus className="w-4 h-4 ml-2" />}
+            إنشاء اجتماع مخصص
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Generated Meetings List */}
+      {generatedMeetings.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card glassy>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                الاجتماعات المُنشأة ({generatedMeetings.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {generatedMeetings.map((meeting, index) => (
+                  <div
+                    key={meeting.id || index}
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Badge variant="secondary">{index + 1}</Badge>
+                      <div>
+                        <p className="font-medium">{meeting.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {new Date(meeting.date).toLocaleDateString('ar-EG')} - {new Date(meeting.startTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-green-600">
+                      تم الإنشاء
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Manage Existing Meetings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card glassy>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              إدارة الاجتماعات الموجودة ({meetings.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {meetings.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-medium">{meeting.title}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {meeting.date.toLocaleDateString('ar-EG')} - {meeting.startTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        📍 {meeting.location}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={meeting.status === 'scheduled' ? 'default' : meeting.status === 'completed' ? 'secondary' : 'destructive'}>
 
       {/* Generated Meetings List */}
       {generatedMeetings.length > 0 && (
