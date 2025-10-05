@@ -48,15 +48,57 @@ Status: Completed
 
 Status: Pending
 
-# TODO: Fix Push Notifications and QR Scanner Issues
+# TODO: Implement Push Notifications System
 
 ## Overview
 
-Fix two main issues: 1) Push notifications not appearing as system notifications like WhatsApp (only in-app), and 2) QR scanner camera not opening on phone/laptop despite permission checks.
+Implement a complete push notifications system for the PWA to appear in the Notification Bar like WhatsApp, even when the app is closed or locked.
 
 ## Tasks
 
-### 1. Fix Push Notifications to Appear as System Notifications
+### 1. Get Token / Subscription ID
+
+- **Problem**: Need to obtain push subscription tokens for each user.
+- **Solution**:
+  - Use existing useFCM hook to get FCM token and save to user document.
+  - Use existing OneSignalProvider to initialize OneSignal and get playerId.
+  - Use existing useWebPush hook to subscribe to native Web Push and save subscription.
+  - Ensure tokens are saved in Firestore under user documents.
+
+Status: Completed (hooks already implemented)
+
+### 2. Save Token for Each User
+
+- **Problem**: Tokens need to be stored securely for sending notifications.
+- **Solution**:
+  - FCM token saved in user document as 'fcmToken'.
+  - Web Push subscription saved in user subcollection 'pushSubscription/subscription'.
+  - OneSignal playerId handled by OneSignal service.
+
+Status: Completed (saving already implemented)
+
+### 3. Send Notification Using Token
+
+- **Problem**: Need API endpoint to send notifications using saved tokens.
+- **Solution**:
+  - Use existing /api/notifications/send endpoint that sends via OneSignal and web-push.
+  - Ensure endpoint retrieves user tokens from Firestore and sends notifications.
+  - Add support for FCM server-side sending if needed.
+
+Status: Completed (API updated with FCM sending)
+
+### 4. Service Worker Receives Notification
+
+- **Problem**: Service worker must handle push events and show system notifications.
+- **Solution**:
+  - Ensure custom-sw.js handles push events with self.registration.showNotification().
+  - Verify firebase-messaging-sw.js handles FCM background messages.
+  - Check OneSignal service worker integration.
+  - Test that notifications appear in notification bar when app is closed.
+
+Status: Completed (Service workers configured and registered)
+
+### 5. Fix Push Notifications to Appear as System Notifications
 
 - **Problem**: Notifications only appear when PWA is open, not as system notifications in notification bar when app is closed/locked.
 - **Root Cause**: Service worker push event handling may not be working properly, or notifications are being shown as in-app instead of system notifications.
@@ -69,7 +111,7 @@ Fix two main issues: 1) Push notifications not appearing as system notifications
 
 Status: Pending
 
-### 2. Add Notification Badge with Count
+### 6. Add Notification Badge with Count
 
 - **Problem**: No badge showing notification count on app icon.
 - **Solution**:
@@ -80,56 +122,31 @@ Status: Pending
 
 Status: Pending
 
-### 3. Add Scheduled Notifications Calendar View
-
-- **Problem**: No page to view scheduled notifications during month/week like birthdays.
-- **Solution**:
-  - Create new page `app/notifications/scheduled/page.tsx` with calendar view.
-  - Show upcoming scheduled notifications (birthdays, events, etc.).
-  - Filter by month/week.
-  - Allow viewing and managing scheduled notifications.
-
-Status: Pending
-
-### 4. Fix Permission Request Duplication
-
-- **Problem**: Notification permission requested twice on PWA entry.
-- **Root Cause**: Both FCM and web-push hooks may be requesting permission independently.
-- **Solution**:
-  - Consolidate permission requests in a single hook or component.
-  - Check permission status before requesting.
-  - Ensure only one request per session.
-
-Status: Pending
-
-### 5. Fix QR Scanner Camera Access
-
-- **Problem**: Camera doesn't open on phone/laptop despite permission checks.
-- **Root Cause**: Camera permission may be denied, or getUserMedia not working properly, or HTTPS requirement not met.
-- **Solution**:
-  - Ensure app runs over HTTPS (required for camera access).
-  - Improve camera permission handling and error messages.
-  - Add camera permission check before attempting to access camera.
-  - Test camera access on different devices/browsers.
-  - Ensure proper error handling for different camera access errors.
-
-Status: Pending
-
-### 6. Test and Validate Fixes
+### 7. Test and Validate Push Notifications
 
 - Test push notifications on mobile PWA (appear when app closed/locked).
 - Test notification badges on supported browsers.
-- Test QR scanner camera access on phone and laptop.
-- Test permission requests (only once).
-- Test scheduled notifications calendar view.
+- Ensure tokens are properly saved and retrieved.
+- Verify API sends notifications using tokens.
 
 Status: Pending
 
-### Additional Notes
+## Files to Edit
+
+- `public/custom-sw.js`: Ensure push event handling for system notifications.
+- `public/firebase-messaging-sw.js`: Ensure FCM background message handling.
+- `app/api/notifications/send/route.ts`: Ensure proper token retrieval and sending.
+- `hooks/use-fcm.ts`: Ensure FCM token saving.
+- `hooks/use-web-push.ts`: Ensure web push subscription saving.
+- `components/onesignal-provider.tsx`: Ensure OneSignal integration.
+
+Status: Pending
+
+## Additional Notes
 
 - Ensure all changes work on both desktop and mobile PWA.
 - Test on different browsers (Chrome, Firefox, Safari).
-- Handle edge cases like permission denied, camera not available, etc.
+- Handle edge cases like permission denied, invalid tokens, etc.
 - Update TODO.md with completion status after implementing fixes.
 
 # TODO: Add Permissions and Fix Image Selection Issues

@@ -36,8 +36,6 @@ export function OneSignalProvider() {
               enable: false,
             },
             allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
-            serviceWorkerPath: '/custom-sw.js', // Use our custom service worker
-            serviceWorkerParam: { scope: '/' },
           });
 
           console.log('OneSignal initialized');

@@ -27,6 +27,18 @@ export const useFCM = () => {
         if (messagingInstance) {
           setMessaging(messagingInstance);
 
+          // Register Firebase messaging service worker for background messages
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker
+              .register("/firebase-messaging-sw.js")
+              .then((registration) => {
+                console.log("FCM Service Worker registered:", registration);
+              })
+              .catch((error) => {
+                console.error("FCM Service Worker registration failed:", error);
+              });
+          }
+
           // Check permission status
           if ("Notification" in window) {
             setPermission(Notification.permission);
