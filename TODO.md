@@ -226,6 +226,53 @@ Status: Pending
 - Ensure changes work on both mobile and desktop PWA.
 - Update TODO.md with completion status after implementing fixes.
 
+# TODO: Fix Camera Permissions and OneSignal Service Worker Issues
+
+## Overview
+
+Fix camera permissions policy violation and OneSignal service worker registration failures in the deployed app.
+
+## Tasks
+
+### 1. Update Permissions-Policy Header to Allow Camera Access
+
+- **Problem**: Permissions-Policy header in next.config.js was set to "camera=()", blocking camera access.
+- **Solution**:
+  - Changed Permissions-Policy to "camera=(self), microphone=(), geolocation=()".
+  - This allows camera access from the same origin.
+
+Status: Completed
+
+### 2. Fix OneSignal Service Worker Registration
+
+- **Problem**: OneSignal service worker registration failed with origin mismatch error for malformed scriptURL.
+- **Solution**:
+  - Removed serviceWorkerPath and serviceWorkerParam from OneSignal.init config.
+  - Let OneSignal use default CDN service worker to avoid registration issues.
+  - Kept OneSignalSDKWorker.js and OneSignalSDK.sw.js files for potential future use.
+
+Status: Completed
+
+### 3. Test Fixes in Deployed App
+
+- Test camera permission requests work without policy violations.
+- Test OneSignal service worker registers successfully.
+- Test OneSignal notifications work properly.
+- Verify install prompt behavior remains correct.
+
+Status: Pending
+
+## Files Edited
+
+- `next.config.js`: Updated Permissions-Policy header.
+- `components/onesignal-provider.tsx`: Removed serviceWorkerPath config.
+
+## Additional Notes
+
+- Camera permissions should now work for QR scanning and photo uploads.
+- OneSignal notifications should register service worker without origin errors.
+- Monitor console logs after deployment to confirm fixes.
+
 # TODO: Move Front-End Role Checks to Back-End
 
 ## Overview

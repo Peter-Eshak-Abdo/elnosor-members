@@ -44,8 +44,9 @@ export function OneSignalProvider() {
               enable: false,
             },
             allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
-            serviceWorkerPath: '/OneSignalSDKWorker.js',
-            serviceWorkerParam: { scope: '/' },
+            // Removed serviceWorkerPath and serviceWorkerParam to fix service worker registration issue
+            // serviceWorkerPath: '/OneSignalSDKWorker.js',
+            // serviceWorkerParam: { scope: '/' },
           });
 
           console.log('OneSignal initialized');
