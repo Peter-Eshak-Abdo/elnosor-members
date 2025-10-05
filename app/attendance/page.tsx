@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { UserCheck, Search, Download, Camera, X, FileSpreadsheet, Crown, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,19 +11,18 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Label } from "@/components/ui/label"
+import { NumberScanner } from "@/components/number-scanner"
 import { useAuth } from "@/app/providers"
 import { t } from "@/lib/translations"
 import type { Member, AttendanceLog, Meeting } from "@/lib/types"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useRouter } from "next/navigation"
-import { Html5QrcodeScanner } from 'html5-qrcode'
-import { NumberScanner } from "@/components/number-scanner"
 import { ExcelService } from "@/lib/excel-utils"
-import toast from "react-hot-toast"
+import { validateQRSignature } from "@/lib/utils"
+import { Html5QrcodeScanner } from 'html5-qrcode'
 import { useMembers, useAttendance, firestoreHelpers } from "@/hooks/use-firestore"
 import { useOfflineStorage } from "@/hooks/use-offline-storage"
-import { validateQRSignature } from "@/lib/utils"
+import toast from "react-hot-toast"
 import * as QRCode from "qrcode.react"
 
 export default function AttendancePage() {
