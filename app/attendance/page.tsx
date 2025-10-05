@@ -55,84 +55,85 @@ export default function AttendancePage() {
   const [showCameraPermissionDialog, setShowCameraPermissionDialog] = useState(false)
 
   useEffect(() => {
+    if (!user) {
       router.push("/auth")
       return
     }
 
-    // Check if running over HTTPS (required for camera access)
-    const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
+      // Check if running over HTTPS (required for camera access)
+      const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
 
-    if (!isHttps) {
-      setCameraPermission('denied')
-      setStoragePermission('denied')
-      setNotificationPermission('denied')
-      console.warn('Camera access requires HTTPS. Please run the app over HTTPS for camera functionality.')
-      return
-    }
-
-    // Request permissions on mount
-    const initPermissions = async () => {
-      // Request camera permission
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-        setCameraPermission('granted')
-        stream.getTracks().forEach(track => track.stop())
-      } catch (error: any) {
-        if (error.name === 'NotAllowedError') {
-          setCameraPermission('denied')
-          toast.error('تم رفض إذن الكاميرا')
-        } else {
-          setCameraPermission('prompt')
-          toast.error('يرجى السماح بإذن الكاميرا')
-        }
+      if (!isHttps) {
+        setCameraPermission('denied')
+        setStoragePermission('denied')
+        setNotificationPermission('denied')
+        console.warn('Camera access requires HTTPS. Please run the app over HTTPS for camera functionality.')
+        return
       }
 
-      // Request storage permission
-      try {
-        if (navigator.storage && navigator.storage.persist) {
-          const isPersisted = await navigator.storage.persisted()
-          if (!isPersisted) {
-            const persisted = await navigator.storage.persist()
-            setStoragePermission(persisted ? 'granted' : 'denied')
-            if (!persisted) {
-              toast.error('تم رفض إذن التخزين الدائم')
+      // Request permissions on mount
+      const initPermissions = async () => {
+        // Request camera permission
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+          setCameraPermission('granted')
+          stream.getTracks().forEach(track => track.stop())
+        } catch (error: any) {
+          if (error.name === 'NotAllowedError') {
+            setCameraPermission('denied')
+            toast.error('تم رفض إذن الكاميرا')
+          } else {
+            setCameraPermission('prompt')
+            toast.error('يرجى السماح بإذن الكاميرا')
+          }
+        }
+
+        // Request storage permission
+        try {
+          if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persisted()
+            if (!isPersisted) {
+              const persisted = await navigator.storage.persist()
+              setStoragePermission(persisted ? 'granted' : 'denied')
+              if (!persisted) {
+                toast.error('تم رفض إذن التخزين الدائم')
+              }
+            } else {
+              setStoragePermission('granted')
             }
           } else {
-            setStoragePermission('granted')
+            setStoragePermission('prompt')
+            toast.error('إذن التخزين غير مدعوم في هذا المتصفح')
           }
-        } else {
-          setStoragePermission('prompt')
-          toast.error('إذن التخزين غير مدعوم في هذا المتصفح')
+        } catch (error) {
+          setStoragePermission('denied')
+          toast.error('خطأ في طلب إذن التخزين')
         }
-      } catch (error) {
-        setStoragePermission('denied')
-        toast.error('خطأ في طلب إذن التخزين')
-      }
 
-      // Request notification permission
-      try {
-        if ('Notification' in window) {
-          const permission = Notification.permission
-          setNotificationPermission(permission as 'granted' | 'denied' | 'prompt')
-          if (permission === 'default') {
-            const newPermission = await Notification.requestPermission()
-            setNotificationPermission(newPermission as 'granted' | 'denied' | 'prompt')
-            if (newPermission === 'denied') {
-              toast.error('تم رفض إذن الإشعارات')
+        // Request notification permission
+        try {
+          if ('Notification' in window) {
+            const permission = Notification.permission
+            setNotificationPermission(permission as 'granted' | 'denied' | 'prompt')
+            if (permission === 'default') {
+              const newPermission = await Notification.requestPermission()
+              setNotificationPermission(newPermission as 'granted' | 'denied' | 'prompt')
+              if (newPermission === 'denied') {
+                toast.error('تم رفض إذن الإشعارات')
+              }
             }
+          } else {
+            setNotificationPermission('denied')
+            toast.error('الإشعارات غير مدعومة في هذا المتصفح')
           }
-        } else {
+        } catch (error) {
           setNotificationPermission('denied')
-          toast.error('الإشعارات غير مدعومة في هذا المتصفح')
+          toast.error('خطأ في طلب إذن الإشعارات')
         }
-      } catch (error) {
-        setNotificationPermission('denied')
-        toast.error('خطأ في طلب إذن الإشعارات')
       }
-    }
 
-    initPermissions()
-  }, [user, router])
+      initPermissions()
+    }, [user, router])
 
   const formatLateness = (minutes: number) => {
     if (minutes === 0) return "في الموعد"
@@ -498,7 +499,28 @@ export default function AttendancePage() {
                   <UserCheck className="w-4 h-4 ml-2" />
                   {attended ? 'تم التسجيل' : 'تسجيل حضوري'}
                 </Button>
-                <button type="button" className="border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white px-3 py-1 rounded text-sm" onClick={() => { if (cameraPermission === 'denied') { toast.error('الكاميرا غير متاحة. يرجى التأكد من تشغيل التطبيق عبر HTTPS ومنح إذن الوصول للكاميرا.'); return; } setShowScanner(true); setTimeout(startScanner, 100); }} disabled={attended || cameraPermission === 'denied'}>
+                <button type="button" className="border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white px-3 py-1 rounded text-sm" onClick={async () => {
+                  // Re-request camera permission if denied or prompt
+                  if (cameraPermission !== 'granted') {
+                    try {
+                      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+                      setCameraPermission('granted')
+                      stream.getTracks().forEach(track => track.stop())
+                    } catch (error: any) {
+                      if (error.name === 'NotAllowedError') {
+                        setCameraPermission('denied')
+                        toast.error('تم رفض إذن الكاميرا')
+                        return
+                      } else {
+                        setCameraPermission('prompt')
+                        toast.error('يرجى السماح بإذن الكاميرا')
+                        return
+                      }
+                    }
+                  }
+                  setShowScanner(true)
+                  setTimeout(startScanner, 100)
+                }} disabled={attended}>
                   <span role="img" aria-label="scan">📷</span> QR
                 </button>
               </div>
