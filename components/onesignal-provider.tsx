@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect } from 'react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useAuth } from '@/app/providers'
 
 declare global {
   interface Window {
@@ -21,9 +24,14 @@ interface OneSignalSDK {
     requestPermission: () => Promise<string>;
     addEventListener: (event: string, callback: (event: any) => void) => void;
   };
+  User: {
+    getUserId: () => Promise<string | null>;
+  };
 }
 
 export function OneSignalProvider() {
+  const { user } = useAuth();
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -36,6 +44,8 @@ export function OneSignalProvider() {
               enable: false,
             },
             allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
+            serviceWorkerPath: '/OneSignalSDKWorker.js',
+            serviceWorkerParam: { scope: '/' },
           });
 
           console.log('OneSignal initialized');
@@ -44,6 +54,23 @@ export function OneSignalProvider() {
           const permission = await OneSignal.Notifications.requestPermission();
           if (permission === 'granted') {
             console.log('OneSignal permission granted');
+
+            // Get and save OneSignal playerId
+            if (user) {
+              try {
+                const playerId = await OneSignal.User.getUserId();
+                if (playerId) {
+                  const userSettingsRef = doc(db, 'user_settings', user.uid);
+                  await updateDoc(userSettingsRef, {
+                    oneSignalPlayerId: playerId,
+                    notificationsEnabled: true,
+                  });
+                  console.log('OneSignal playerId saved in user_settings:', playerId);
+                }
+              } catch (error) {
+                console.error('Error saving OneSignal playerId:', error);
+              }
+            }
           } else {
             console.log('OneSignal permission denied');
           }
@@ -69,7 +96,7 @@ export function OneSignalProvider() {
         }
       });
     }
-  }, []);
+  }, [user]);
 
   return null;
 }

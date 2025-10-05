@@ -52,9 +52,9 @@ export default function AttendancePage() {
   const [showNumberScanner, setShowNumberScanner] = useState(false)
   const [startNumberScanner, setStartNumberScanner] = useState(false)
   const [numberScannerLoading, setNumberScannerLoading] = useState(false)
+  const [showCameraPermissionDialog, setShowCameraPermissionDialog] = useState(false)
 
   useEffect(() => {
-    if (!user) {
       router.push("/auth")
       return
     }
@@ -70,8 +70,9 @@ export default function AttendancePage() {
       return
     }
 
-    // Permission request functions
-    const requestCameraPermission = async () => {
+    // Request permissions on mount
+    const initPermissions = async () => {
+      // Request camera permission
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         setCameraPermission('granted')
@@ -85,9 +86,8 @@ export default function AttendancePage() {
           toast.error('يرجى السماح بإذن الكاميرا')
         }
       }
-    }
 
-    const requestStoragePermission = async () => {
+      // Request storage permission
       try {
         if (navigator.storage && navigator.storage.persist) {
           const isPersisted = await navigator.storage.persisted()
@@ -108,9 +108,8 @@ export default function AttendancePage() {
         setStoragePermission('denied')
         toast.error('خطأ في طلب إذن التخزين')
       }
-    }
 
-    const requestNotificationPermission = async () => {
+      // Request notification permission
       try {
         if ('Notification' in window) {
           const permission = Notification.permission
@@ -132,41 +131,7 @@ export default function AttendancePage() {
       }
     }
 
-    // Check permissions using Permissions API if available
-    const checkPermissions = async () => {
-      if (navigator.permissions) {
-        try {
-          const cameraStatus = await navigator.permissions.query({ name: 'camera' as PermissionName })
-          setCameraPermission(cameraStatus.state)
-          cameraStatus.addEventListener('change', () => {
-            setCameraPermission(cameraStatus.state)
-          })
-        } catch (error) {
-          console.error('Error checking camera permission:', error)
-          setCameraPermission('unknown')
-        }
-
-        // Storage permission does not have Permissions API support, so request directly
-        await requestStoragePermission()
-
-        try {
-          const notificationStatus = await navigator.permissions.query({ name: 'notifications' as PermissionName })
-          setNotificationPermission(notificationStatus.state)
-          notificationStatus.addEventListener('change', () => {
-            setNotificationPermission(notificationStatus.state)
-          })
-        } catch (error) {
-          console.error('Error checking notification permission:', error)
-          setNotificationPermission('unknown')
-        }
-      } else {
-        setCameraPermission('unknown')
-        setStoragePermission('unknown')
-        setNotificationPermission('unknown')
-      }
-    }
-
-    checkPermissions()
+    initPermissions()
   }, [user, router])
 
   const formatLateness = (minutes: number) => {
@@ -479,6 +444,7 @@ export default function AttendancePage() {
                     }
                   }
                 }
+                setShowCameraPermissionDialog(false)
                 setShowScanner(true)
                 setTimeout(startScanner, 100)
               }}>
