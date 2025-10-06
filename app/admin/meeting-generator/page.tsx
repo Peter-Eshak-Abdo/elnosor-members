@@ -89,9 +89,21 @@ export default function MeetingGeneratorPage() {
     setEditForm({
       title: meeting.title,
       description: meeting.description,
-      date: meeting.date.toISOString().split('T')[0],
-      startTime: meeting.startTime.toISOString().slice(0, 16),
-      endTime: meeting.endTime.toISOString().slice(0, 16),
+      date: meeting.date.toLocaleDateString('en-CA'),
+      startTime: meeting.startTime.toLocaleString('sv-SE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).replace(' ', 'T'),
+      endTime: meeting.endTime.toLocaleString('sv-SE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).replace(' ', 'T'),
       location: meeting.location,
       type: meeting.type,
       status: meeting.status,

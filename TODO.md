@@ -6,40 +6,7 @@ Implement background synchronization and update capabilities for the PWA, and en
 
 ## Tasks
 
-### 1. Implement Background Sync for PWA Updates
-
-- **Problem**: No background sync for app updates and data synchronization.
-- **Solution**:
-  - Create custom service worker with background sync API.
-  - Add periodic sync for checking updates.
-  - Implement sync event handlers for data updates.
-  - Add API endpoints for update checking.
-
-Status: Completed
-
-### 2. Extend Offline Caching for 1 Year
-
-- **Problem**: Limited offline caching duration (24 hours).
-- **Solution**:
-  - Change Firestore/Firebase caching to StaleWhileRevalidate.
-  - Extend cache expiration to 1 year for member data.
-  - Add member data specific caching rules.
-  - Cache static assets for longer periods.
-
-Status: Completed
-
-### 3. Enhance Profile Page Offline Functionality
-
-- **Problem**: Profile page requires network for initial load.
-- **Solution**:
-  - Always load from localStorage cache first for instant access.
-  - Fetch fresh data in background when online.
-  - Show cached data immediately when offline.
-  - Better error handling for offline scenarios.
-
-Status: Completed
-
-### 4. Test Offline Functionality
+### 1. Test Offline Functionality
 
 - Test profile page works offline after first load.
 - Test app navigation works offline.
@@ -56,49 +23,7 @@ Implement a complete push notifications system for the PWA to appear in the Noti
 
 ## Tasks
 
-### 1. Get Token / Subscription ID
-
-- **Problem**: Need to obtain push subscription tokens for each user.
-- **Solution**:
-  - Use existing useFCM hook to get FCM token and save to user document.
-  - Use existing OneSignalProvider to initialize OneSignal and get playerId.
-  - Use existing useWebPush hook to subscribe to native Web Push and save subscription.
-  - Ensure tokens are saved in Firestore under user documents.
-
-Status: Completed (hooks already implemented)
-
-### 2. Save Token for Each User
-
-- **Problem**: Tokens need to be stored securely for sending notifications.
-- **Solution**:
-  - FCM token saved in user document as 'fcmToken'.
-  - Web Push subscription saved in user subcollection 'pushSubscription/subscription'.
-  - OneSignal playerId handled by OneSignal service.
-
-Status: Completed (saving already implemented)
-
-### 3. Send Notification Using Token
-
-- **Problem**: Need API endpoint to send notifications using saved tokens.
-- **Solution**:
-  - Use existing /api/notifications/send endpoint that sends via OneSignal and web-push.
-  - Ensure endpoint retrieves user tokens from Firestore and sends notifications.
-  - Add support for FCM server-side sending if needed.
-
-Status: Completed (API updated with FCM sending)
-
-### 4. Service Worker Receives Notification
-
-- **Problem**: Service worker must handle push events and show system notifications.
-- **Solution**:
-  - Ensure custom-sw.js handles push events with self.registration.showNotification().
-  - Verify firebase-messaging-sw.js handles FCM background messages.
-  - Check OneSignal service worker integration.
-  - Test that notifications appear in notification bar when app is closed.
-
-Status: Completed (Service workers configured and registered)
-
-### 5. Fix Push Notifications to Appear as System Notifications
+### 1. Fix Push Notifications to Appear as System Notifications
 
 - **Problem**: Notifications only appear when PWA is open, not as system notifications in notification bar when app is closed/locked.
 - **Root Cause**: Service worker push event handling may not be working properly, or notifications are being shown as in-app instead of system notifications.
@@ -111,7 +36,7 @@ Status: Completed (Service workers configured and registered)
 
 Status: Pending
 
-### 6. Add Notification Badge with Count
+### 2. Add Notification Badge with Count
 
 - **Problem**: No badge showing notification count on app icon.
 - **Solution**:
@@ -122,7 +47,7 @@ Status: Pending
 
 Status: Pending
 
-### 7. Test and Validate Push Notifications
+### 3. Test and Validate Push Notifications
 
 - Test push notifications on mobile PWA (appear when app closed/locked).
 - Test notification badges on supported browsers.
@@ -157,18 +82,7 @@ Add camera and storage permissions on first app open, and fix image selection is
 
 ## Tasks
 
-### 1. Add Camera Permission Request on First App Open
-
-- **Problem**: Camera permission not requested on app initialization.
-- **Solution**:
-  - Add camera permission request in providers after user authentication (non-blocking).
-  - Request permission using `navigator.mediaDevices.getUserMedia({ video: true })`.
-  - Handle permission denied gracefully - app works normally without permissions.
-  - Also request notification permission for push notifications.
-
-Status: Completed
-
-### 2. Add Storage Permission Request
+### 1. Add Storage Permission Request
 
 - **Problem**: Storage permission not requested for photo selection from gallery.
 - **Solution**:
@@ -178,29 +92,7 @@ Status: Completed
 
 Status: Pending
 
-### 3. Fix Image Crop Not Moving from Center
-
-- **Problem**: Crop rectangle doesn't move when user tries to drag it.
-- **Solution**:
-  - Check ReactCrop configuration in `components/ui/image-upload.tsx`.
-  - Ensure `onChange` and `onComplete` are properly set.
-  - Test crop dragging functionality.
-
-Status: Completed
-
-### 4. Fix Image Not Updating After Save or Skip Crop
-
-- **Problem**: After selecting image and clicking save or skip crop, image stays as Google image instead of uploaded one.
-- **Root Cause**: State not updating properly or upload failing silently.
-- **Solution**:
-  - Ensure `onUpload` callback updates state correctly in parent component.
-  - Add error handling and user feedback for upload failures.
-  - Check if `uploadedPhotoUrl` is being set and used in form submission.
-  - Verify Cloudinary upload is working and returning valid URL.
-
-Status: Completed
-
-### 5. Test and Validate Fixes
+### 2. Test and Validate Fixes
 
 - Test camera permission request on first open.
 - Test storage/file access permission.
@@ -234,26 +126,7 @@ Fix camera permissions policy violation and OneSignal service worker registratio
 
 ## Tasks
 
-### 1. Update Permissions-Policy Header to Allow Camera Access
-
-- **Problem**: Permissions-Policy header in next.config.js was set to "camera=()", blocking camera access.
-- **Solution**:
-  - Changed Permissions-Policy to "camera=(self), microphone=(), geolocation=()".
-  - This allows camera access from the same origin.
-
-Status: Completed
-
-### 2. Fix OneSignal Service Worker Registration
-
-- **Problem**: OneSignal service worker registration failed with origin mismatch error for malformed scriptURL.
-- **Solution**:
-  - Removed serviceWorkerPath and serviceWorkerParam from OneSignal.init config.
-  - Let OneSignal use default CDN service worker to avoid registration issues.
-  - Kept OneSignalSDKWorker.js and OneSignalSDK.sw.js files for potential future use.
-
-Status: Completed
-
-### 3. Test Fixes in Deployed App
+### 1. Test Fixes in Deployed App
 
 - Test camera permission requests work without policy violations.
 - Test OneSignal service worker registers successfully.
@@ -364,3 +237,149 @@ Status: Pending
 - Implement rate limiting on permission checks.
 - Add audit logging for role-based actions.
 - Update after implementing to mark as completed.
+
+# TODO: Server Features
+
+## Overview
+
+Implement remaining server-side features for the admin interface.
+
+## Tasks
+
+### 1. Homepage Improvements
+
+- Make Header glassy and rounded and 75% width
+
+Status: Completed
+
+### 2. Members Page Enhancements
+
+- Delete member functionality
+- Export members to Excel sheet
+- Import members from Excel sheet
+- Add member manually
+- Create page showing people with birthdays in current month automatically sorted
+- Edit member data: change profile picture
+
+Status: Pending
+
+### 3. Notifications Page Features
+
+- Daily notifications for verses and fathers' sayings
+- Automatic notification on person's birthday
+- Send token for push notifications
+
+Status: Pending
+
+### 4. Gallery Page
+
+- Download images functionality
+
+Status: Pending
+
+### 5. Offline Support
+
+- Server records attendance and syncs in background when network available
+- Member can open profile, notifications, and gallery pages offline
+
+Status: Pending
+
+### 6. Posts Page
+
+- Format post appearance
+
+Status: Pending
+
+## Additional Notes
+
+- Ensure all features work on both desktop and mobile PWA.
+- Test thoroughly after implementation.
+
+# TODO: Member Features
+
+## Overview
+
+Implement member-side features for the user interface.
+
+## Tasks
+
+### 1. Login Page Enhancements
+
+- Login with email and password including forget password functionality
+- Add photo from images
+- Make birth date clearer using Shadcn calendar
+- Add last communion date
+- Add last confession date
+
+Status: Pending
+
+### 2. Homepage Improvements
+
+- Make homepage work offline
+- Allow taking screenshot
+
+Status: Pending
+
+### 3. Create Complaints and Suggestions Page
+
+- List to choose complaint or suggestion
+- Textarea to write in
+
+Status: Pending
+
+### 4. Update Notifications
+
+- Notification for posts
+- Automatic birthday notification
+
+Status: Pending
+
+## Additional Notes
+
+- Ensure features are user-friendly and accessible.
+- Test on different devices.
+
+# TODO: Back-end Improvements
+
+## Overview
+
+Migrate to better back-end solutions and storage options.
+
+## Tasks
+
+### 1. Database Migration
+
+- Migrate to Supabase
+- Use Excel sheet as database
+
+Status: Pending
+
+### 2. Image Storage
+
+- Store images on drive or Supabase
+
+Status: Pending
+
+## Additional Notes
+
+- Plan migration carefully to avoid data loss.
+- Test thoroughly after migration.
+
+# TODO: UI & UX Enhancements
+
+## Overview
+
+Improve user interface and experience for better performance and usability.
+
+## Tasks
+
+### 1. Caching for Faster Loading
+
+- Implement caching to load faster
+
+Status: Pending
+
+## Additional Notes
+
+- Focus on performance improvements.
+- Test loading times before and after changes.

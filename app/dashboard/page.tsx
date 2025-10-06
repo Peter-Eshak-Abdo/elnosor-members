@@ -379,23 +379,25 @@ export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">مرحباً، {user?.displayName}</h1>
-            <p className="text-gray-600 dark:text-gray-400">لوحة تحليلات النسور</p>
-          </div>
+        <div className="w-3/4 mx-auto bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">مرحباً، {user?.displayName}</h1>
+              <p className="text-gray-600 dark:text-gray-400">لوحة تحليلات النسور</p>
+            </div>
 
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">آخر 7 أيام</SelectItem>
-              <SelectItem value="30">آخر 30 يوم</SelectItem>
-              <SelectItem value="90">آخر 3 أشهر</SelectItem>
-              <SelectItem value="365">آخر سنة</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">آخر 7 أيام</SelectItem>
+                <SelectItem value="30">آخر 30 يوم</SelectItem>
+                <SelectItem value="90">آخر 3 أشهر</SelectItem>
+                <SelectItem value="365">آخر سنة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </motion.div>
 
