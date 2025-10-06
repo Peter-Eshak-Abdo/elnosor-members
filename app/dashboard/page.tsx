@@ -377,8 +377,8 @@ export default function DashboardPage() {
   const COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#06B6D4"]
 
   return (
-    <div className="p-6 space-y-6 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg w-[90%] mx-auto">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+    <div className="p-6 space-y-6 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 w-[90%]">
         <div className="w-full bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-6 shadow-lg">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -728,7 +728,7 @@ export default function DashboardPage() {
 
                 <button
                   type="button"
-                  className="p-4 text-right rounded-lg border border-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="p-4 text-right rounded-lg border border-gray-800 dark:border-gray-700 transition-colors cursor-not-allowed opacity-50"
                   onClick={() => router.push("/admin/meeting-generator")}
                   disabled
                 >

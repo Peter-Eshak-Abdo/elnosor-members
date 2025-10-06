@@ -209,36 +209,39 @@ export function ImageUpload({
         canvas.height
       )
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) throw new Error('Failed to create blob')
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob)
+          else reject(new Error('Failed to create blob'))
+        }, selectedFile.type)
+      })
 
-        const croppedFile = new File([blob], selectedFile.name, { type: selectedFile.type })
+      const croppedFile = new File([blob], selectedFile.name, { type: selectedFile.type })
 
-        let imageUrl: string
+      let imageUrl: string
 
-        switch (uploadType) {
-          case "member":
-            imageUrl = await cloudinary.uploadMemberPhoto(croppedFile, entityId)
-            break
-          case "post":
-            imageUrl = await cloudinary.uploadPostImage(croppedFile, entityId)
-            break
-          case "notification":
-            imageUrl = await cloudinary.uploadNotificationImage(croppedFile, entityId)
-            break
-          case "user":
-            imageUrl = await cloudinary.uploadUserPhoto(croppedFile, entityId)
-            break
-          default:
-            throw new Error("Invalid upload type")
-        }
+      switch (uploadType) {
+        case "member":
+          imageUrl = await cloudinary.uploadMemberPhoto(croppedFile, entityId)
+          break
+        case "post":
+          imageUrl = await cloudinary.uploadPostImage(croppedFile, entityId)
+          break
+        case "notification":
+          imageUrl = await cloudinary.uploadNotificationImage(croppedFile, entityId)
+          break
+        case "user":
+          imageUrl = await cloudinary.uploadUserPhoto(croppedFile, entityId)
+          break
+        default:
+          throw new Error("Invalid upload type")
+      }
 
-        console.log("Cropped upload successful, URL:", imageUrl)
-        onUpload(imageUrl)
-        setSelectedFile(null)
-        setCompletedCrop(undefined)
-        toast.success("تم رفع الصورة المقصوصة بنجاح")
-      }, selectedFile.type)
+      console.log("Cropped upload successful, URL:", imageUrl)
+      onUpload(imageUrl)
+      setSelectedFile(null)
+      setCompletedCrop(undefined)
+      toast.success("تم رفع الصورة المقصوصة بنجاح")
     } catch (error) {
       console.error("Upload error:", error)
       toast.error("حدث خطأ في رفع الصورة")

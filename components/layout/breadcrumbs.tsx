@@ -1,9 +1,19 @@
 "use client"
 
+import * as React from "react"
 import { ChevronLeft, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { t } from "@/lib/translations"
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from "@/components/ui/breadcrumb"
 
 interface BreadcrumbItem {
   label: string
@@ -65,21 +75,64 @@ export function Breadcrumbs() {
     return null
   }
 
+  const isCollapsed = breadcrumbs.length > 3
+
   return (
-    <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4 px-4 sm:px-6 mt-4">
-      <Home className="w-4 h-4 mt-4 pt-4" />
-      {breadcrumbs.map((breadcrumb, index) => (
-        <div key={breadcrumb.href} className="flex items-center gap-2">
-          {index > 0 && <ChevronLeft className="w-4 h-4" />}
-          {index === breadcrumbs.length - 1 ? (
-            <span className="text-gray-900 dark:text-white font-medium bg-primary/20 px-2 py-1 rounded">{breadcrumb.label}</span>
-          ) : (
-            <Link href={breadcrumb.href} className="hover:text-gray-900 dark:hover:text-white transition-colors">
-              {breadcrumb.label}
+    <Breadcrumb className="mb-4 px-4 sm:px-6 mt-4">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href="/dashboard">
+              <Home className="w-4 h-4" />
             </Link>
-          )}
-        </div>
-      ))}
-    </nav>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        {isCollapsed ? (
+          <>
+            <BreadcrumbSeparator>
+              <ChevronLeft className="w-4 h-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={breadcrumbs[0].href}>{breadcrumbs[0].label}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronLeft className="w-4 h-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbEllipsis />
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronLeft className="w-4 h-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage className="bg-primary/20 px-2 py-1 rounded">
+                {breadcrumbs[breadcrumbs.length - 1].label}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </>
+        ) : (
+          breadcrumbs.map((breadcrumb, index) => (
+            <React.Fragment key={breadcrumb.href}>
+              <BreadcrumbSeparator>
+                <ChevronLeft className="w-4 h-4" />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                {index === breadcrumbs.length - 1 ? (
+                  <BreadcrumbPage className="bg-primary/20 px-2 py-1 rounded">
+                    {breadcrumb.label}
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </React.Fragment>
+          ))
+        )}
+      </BreadcrumbList>
+    </Breadcrumb>
   )
 }
