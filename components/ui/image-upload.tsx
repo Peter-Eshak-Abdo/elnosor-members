@@ -115,16 +115,18 @@ export function ImageUpload({
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget
-    // Allow free cropping, not forced to center
-    const crop = makeAspectCrop(
-      {
-        unit: '%',
-        width: 80,
-        height: 80,
-        x: 10,
-        y: 10,
-      },
-      1, // aspect ratio 1:1 for square
+    // Center the initial crop
+    const crop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 80,
+          height: 80,
+        },
+        1, // aspect ratio 1:1 for square
+        width,
+        height
+      ),
       width,
       height
     )

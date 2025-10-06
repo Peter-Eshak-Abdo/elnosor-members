@@ -73,7 +73,7 @@ Status: Pending
 - Test on different browsers (Chrome, Firefox, Safari).
 - Handle edge cases like permission denied, invalid tokens, etc.
 - Update TODO.md with completion status after implementing fixes.
-
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Add Permissions and Fix Image Selection Issues
 
 ## Overview
@@ -118,6 +118,7 @@ Status: Pending
 - Ensure changes work on both mobile and desktop PWA.
 - Update TODO.md with completion status after implementing fixes.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Fix Camera Permissions and OneSignal Service Worker Issues
 
 ## Overview
@@ -146,6 +147,7 @@ Status: Pending
 - OneSignal notifications should register service worker without origin errors.
 - Monitor console logs after deployment to confirm fixes.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Move Front-End Role Checks to Back-End
 
 ## Overview
@@ -238,6 +240,7 @@ Status: Pending
 - Add audit logging for role-based actions.
 - Update after implementing to mark as completed.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Server Features
 
 ## Overview
@@ -295,6 +298,7 @@ Status: Pending
 - Ensure all features work on both desktop and mobile PWA.
 - Test thoroughly after implementation.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Member Features
 
 ## Overview
@@ -339,6 +343,7 @@ Status: Pending
 - Ensure features are user-friendly and accessible.
 - Test on different devices.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: Back-end Improvements
 
 ## Overview
@@ -365,6 +370,7 @@ Status: Pending
 - Plan migration carefully to avoid data loss.
 - Test thoroughly after migration.
 
+<!-- -------------------------------------------------------------------------------------------------------------- -->
 # TODO: UI & UX Enhancements
 
 ## Overview

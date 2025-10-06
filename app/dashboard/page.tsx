@@ -377,9 +377,9 @@ export default function DashboardPage() {
   const COLORS = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#06B6D4"]
 
   return (
-    <div className="p-6 space-y-6 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg">
+    <div className="p-6 space-y-6 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg w-[90%] mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-        <div className="w-3/4 mx-auto bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-6 shadow-lg">
+        <div className="w-full bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-6 shadow-lg">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">مرحباً، {user?.displayName}</h1>
