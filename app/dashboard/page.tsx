@@ -93,27 +93,52 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!user) return
+
+      // Try to load from cache first
       try {
-        const token = await user?.getIdToken()
-        const response = await fetch('/api/dashboard/data', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setDashboardData(data)
+        const cached = localStorage.getItem(`dashboard-data-${user.uid}`)
+        if (cached) {
+          const cachedData = JSON.parse(cached)
+          setDashboardData(cachedData)
+          // If offline, use cached data
+          if (!navigator.onLine) {
+            setLoadingDashboard(false)
+            return
+          }
         }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-      } finally {
-        setLoadingDashboard(false)
+      } catch (cacheError) {
+        console.error("Error loading cached dashboard data:", cacheError)
       }
+
+      // Fetch fresh data if online
+      if (navigator.onLine) {
+        try {
+          const token = await user.getIdToken()
+          const response = await fetch('/api/dashboard/data', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+          if (response.ok) {
+            const data = await response.json()
+            setDashboardData(data)
+            // Cache the data
+            try {
+              localStorage.setItem(`dashboard-data-${user.uid}`, JSON.stringify(data))
+            } catch (cacheError) {
+              console.error("Error caching dashboard data:", cacheError)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching dashboard data:', error)
+        }
+      }
+
+      setLoadingDashboard(false)
     }
 
-    if (user) {
-      fetchDashboardData()
-    }
+    fetchDashboardData()
   }, [user])
 
   const { analytics, loading } = useAnalytics(analyticsDateRange)
@@ -701,7 +726,7 @@ export default function DashboardPage() {
 
                 <button
                   type="button"
-                  className="p-4 text-right rounded-lg border border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="p-4 text-right rounded-lg border border-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   onClick={() => router.push("/admin/meeting-generator")}
                   disabled
                 >

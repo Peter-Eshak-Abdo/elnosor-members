@@ -57,34 +57,70 @@ export const useAnalytics = (dateRange?: { start: Date; end: Date }) => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Cache key based on date range
+  const cacheKey = dateRange
+    ? `analytics-${dateRange.start.getTime()}-${dateRange.end.getTime()}`
+    : 'analytics-all';
+
   useEffect(() => {
+    // Try to load from cache first
+    const loadCachedAnalytics = () => {
+      try {
+        const cached = localStorage.getItem(cacheKey)
+        if (cached) {
+          const cachedData = JSON.parse(cached)
+          setAnalytics(cachedData)
+          // If offline or no fresh data, use cache
+          if (!navigator.onLine ||
+              (members.length === 0 && attendanceLogs.length === 0 && posts.length === 0)) {
+            setLoading(false)
+            return true
+          }
+        }
+      } catch (error) {
+        console.error("Error loading cached analytics:", error)
+      }
+      return false
+    }
+
+    const cachedLoaded = loadCachedAnalytics()
+
     if (
       members.length === 0 &&
       attendanceLogs.length === 0 &&
       posts.length === 0
     ) {
-      setLoading(false);
-      // Return default analytics with zero values when no data is available
-      setAnalytics({
-        attendanceRate: 0,
-        averageLateness: 0,
-        attendanceTrend: [],
-        memberAttendanceStats: [],
-        membersByStage: [],
-        memberGrowth: [],
-        postEngagement: [],
-        monthlyPosts: [],
-        meetingStats: [],
-        weeklyAttendance: [],
-        totalMembers: 0,
-        activeMembers: 0,
-        averageAttendance: 0,
-        engagementRate: 0,
-        totalMembersChange: 0,
-        attendanceRateChange: 0,
-        activeMembersChange: 0,
-        engagementRateChange: 0,
-      });
+      if (!cachedLoaded) {
+        setLoading(false);
+        // Return default analytics with zero values when no data is available
+        const defaultAnalytics = {
+          attendanceRate: 0,
+          averageLateness: 0,
+          attendanceTrend: [],
+          memberAttendanceStats: [],
+          membersByStage: [],
+          memberGrowth: [],
+          postEngagement: [],
+          monthlyPosts: [],
+          meetingStats: [],
+          weeklyAttendance: [],
+          totalMembers: 0,
+          activeMembers: 0,
+          averageAttendance: 0,
+          engagementRate: 0,
+          totalMembersChange: 0,
+          attendanceRateChange: 0,
+          activeMembersChange: 0,
+          engagementRateChange: 0,
+        };
+        setAnalytics(defaultAnalytics);
+        // Cache default analytics
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(defaultAnalytics))
+        } catch (error) {
+          console.error("Error caching default analytics:", error)
+        }
+      }
       return;
     }
 
@@ -410,8 +446,16 @@ export const useAnalytics = (dateRange?: { start: Date; end: Date }) => {
 
     const analyticsData = calculateAnalytics();
     setAnalytics(analyticsData);
+
+    // Cache the calculated analytics
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(analyticsData))
+    } catch (error) {
+      console.error("Error caching analytics:", error)
+    }
+
     setLoading(false);
-  }, [members, attendanceLogs, meetings, posts, dateRange]);
+  }, [members, attendanceLogs, meetings, posts, dateRange, cacheKey]);
 
   return { analytics, loading };
 };

@@ -29,7 +29,7 @@ const withPWA = require("next-pwa")({
     },
     // Cache profile and member data for offline access
     {
-      urlPattern: /\/api\/member|\/api\/members/,
+      urlPattern: /\/api\/member|\/api\/members|\/api\/dashboard/,
       handler: "NetworkFirst",
       options: {
         cacheName: "member-data-cache",

@@ -104,11 +104,22 @@ export function Header({ onMenuToggle, showBackButton = false, title }: HeaderPr
             </motion.div>
 
             {/* Mobile title */}
-            <div className="sm:hidden">
+            <motion.div
+              className="sm:hidden"
+              animate={{
+                opacity: [0, 1, 0.5, 1],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            >
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate max-w-32">
                 {getPageTitle()}
               </h1>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right side - Actions and user info */}

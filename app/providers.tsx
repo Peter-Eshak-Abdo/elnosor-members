@@ -55,6 +55,31 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     // Service worker is registered by next-pwa, no need to register manually
 
+    // Load cached auth state first for offline support
+    const loadCachedAuth = () => {
+      try {
+        const cachedAuth = localStorage.getItem('auth-cache')
+        if (cachedAuth) {
+          const { user: cachedUser, role: cachedRole, token: cachedToken } = JSON.parse(cachedAuth)
+          if (cachedUser && cachedRole) {
+            setUser(cachedUser)
+            setRole(cachedRole)
+            setToken(cachedToken)
+            // If offline, use cached data
+            if (!navigator.onLine) {
+              setLoading(false)
+              return true
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading cached auth:", error)
+      }
+      return false
+    }
+
+    const cachedLoaded = loadCachedAuth()
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user)
 
@@ -64,6 +89,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
           setRole(userRole)
           const idToken = await user.getIdToken()
           setToken(idToken)
+
+          // Cache auth state for offline use
+          try {
+            localStorage.setItem('auth-cache', JSON.stringify({
+              user: {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+              },
+              role: userRole,
+              token: idToken,
+              timestamp: Date.now()
+            }))
+          } catch (cacheError) {
+            console.error("Error caching auth:", cacheError)
+          }
 
           // Request permissions after user is authenticated (non-blocking)
           setTimeout(() => {
@@ -77,6 +119,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       } else {
         setRole(null)
         setToken(null)
+        // Clear cache if logged out
+        localStorage.removeItem('auth-cache')
       }
 
       setLoading(false)

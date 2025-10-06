@@ -458,7 +458,7 @@ export default function AttendancePage() {
                 <span role="img" aria-label="manual">⌨️</span> إدخال يدوي
               </button>
 
-              <button type="button" className="border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white px-3 py-1 rounded text-sm" onClick={async () => {
+              {/* <button type="button" className="border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white px-3 py-1 rounded text-sm" onClick={async () => {
                 // Re-request camera permission if denied or prompt
                 if (cameraPermission !== 'granted') {
                   try {
@@ -483,7 +483,7 @@ export default function AttendancePage() {
 
                 <span role="img" aria-label="number-scan">🔢</span> مسح رقم الكود
 
-              </button>
+              </button> */}
             </>
           )}
 
