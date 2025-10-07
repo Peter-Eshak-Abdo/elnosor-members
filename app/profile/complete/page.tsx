@@ -25,7 +25,7 @@ import { firestoreHelpers } from "@/hooks/use-firestore"
 export default function ProfileCompletePage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { addMember, updateMember } = firestoreHelpers
+  const { promoteUserToMember } = firestoreHelpers
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [birthDate, setBirthDate] = useState<Date>()
@@ -135,7 +135,8 @@ export default function ProfileCompletePage() {
         updatedAt: new Date(),
       }
 
-      await addMember(memberData)
+      // Move user data from users collection to members collection
+      await firestoreHelpers.promoteUserToMember(user.uid, memberData)
 
       toast.success("تم حفظ البيانات بنجاح")
       router.push("/dashboard")

@@ -248,7 +248,12 @@ export const firestoreHelpers = {
         while (!isUnique) {
           code = Math.floor(1000 + Math.random() * 9000).toString();
           // Check uniqueness (simple check, in production use a better method)
-          const existing = await getDocs(query(collection(db, "members"), where("attendanceCode", "==", code)));
+          const existing = await getDocs(
+            query(
+              collection(db, "members"),
+              where("attendanceCode", "==", code)
+            )
+          );
           isUnique = existing.empty;
         }
         filteredUpdates.attendanceCode = code as string;
@@ -397,6 +402,75 @@ export const firestoreHelpers = {
   deleteMeeting: async (meetingId: string) => {
     const meetingRef = doc(db, "meetings", meetingId);
     return await deleteDoc(meetingRef);
+  },
+
+  // Move user data to admins collection and delete from members
+  promoteUserToAdmin: async (userId: string) => {
+    const memberRef = doc(db, "members", userId);
+    const adminRef = doc(db, "admins", userId);
+
+    const memberSnap = await getDoc(memberRef);
+    if (!memberSnap.exists()) {
+      throw new Error("Member not found");
+    }
+
+    const memberData = memberSnap.data();
+
+    // Copy member data to admins collection
+    await setDoc(adminRef, {
+      ...memberData,
+      role: "admin",
+      updatedAt: Timestamp.now(),
+    });
+
+    // Delete member data from members collection
+    await deleteDoc(memberRef);
+  },
+
+  // Move user data to members collection and delete from users
+  promoteUserToMember: async (
+    userId: string,
+    memberData: Omit<Member, "id" | "createdAt" | "updatedAt">
+  ) => {
+    const userRef = doc(db, "users", userId);
+    const memberRef = doc(db, "members", userId);
+
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      throw new Error("User not found");
+    }
+
+    // Copy user data to members collection with additional memberData
+    await setDoc(memberRef, {
+      ...userSnap.data(),
+      ...memberData,
+      role: "member",
+      updatedAt: Timestamp.now(),
+      createdAt: Timestamp.now(),
+    });
+
+    // Delete user data from users collection
+    await deleteDoc(userRef);
+  },
+
+  // Handle first login with Google in users collection, avoid duplication
+  handleFirstLogin: async (userId: string, userData: any) => {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      // User already exists, do nothing or update last login timestamp
+      await updateDoc(userRef, {
+        lastLogin: Timestamp.now(),
+      });
+    } else {
+      // Create new user document
+      await setDoc(userRef, {
+        ...userData,
+        createdAt: Timestamp.now(),
+        lastLogin: Timestamp.now(),
+      });
+    }
   },
 };
 

@@ -171,12 +171,6 @@ export default function MemberEditPage() {
       <h1 className="text-2xl font-bold">تعديل بيانات المخدوم</h1>
 
       <div className="space-y-4">
-        {/* Breadcrumbs with shortened display */}
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 truncate">
-          <span>المخدوم / </span>
-          <span title={params.id?.toString() || ""}>{breadcrumbDisplay}</span>
-        </div>
-
         <div>
           <Label htmlFor="fullName">الاسم الكامل *</Label>
           <Input
