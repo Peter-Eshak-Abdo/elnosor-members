@@ -50,32 +50,30 @@ import {
 
 import { useWebPush } from "@/hooks/use-web-push"
 
-const useOneSignal = () => {
+export default function NotificationsPage() {
+  const { role, user } = useAuth()
+  const router = useRouter()
+
+  // OneSignal permission state
   const [permission, setPermission] = useState<NotificationPermission>('default')
 
   useEffect(() => {
-    const checkPermission = () => {
-      if (typeof window !== 'undefined' && (window as any).oneSignalPermission) {
-        setPermission((window as any).oneSignalPermission)
+    const check = () => {
+      if (typeof window !== 'undefined') {
+        const p = (window as any).oneSignalPermission
+        if (p) setPermission(p)
       }
     }
-    checkPermission()
-    const interval = setInterval(checkPermission, 1000)
+    check()
+    const interval = setInterval(check, 1000)
     return () => clearInterval(interval)
   }, [])
 
   const requestPermission = () => {
-    if (typeof window !== 'undefined' && (window as any).requestOneSignalPermission) {
-      (window as any).requestOneSignalPermission()
+    if (typeof window !== 'undefined') {
+      (window as any).requestOneSignalPermission?.()
     }
   }
-
-  return { permission, requestPermission }
-}
-
-export default function NotificationsPage() {
-  const { role, user } = useAuth()
-  const router = useRouter()
 
   // Real-time data hooks
   const { notifications, loading: notificationsLoading, error: notificationsError } = useNotifications()
@@ -83,9 +81,6 @@ export default function NotificationsPage() {
   const { schedules, loading: schedulesLoading, error: schedulesError } = useNotificationSchedules()
   const { quotes: dailyQuotes, loading: quotesLoading, error: quotesError } = useDailyQuotes()
   const { createNotification, updateNotification, deleteNotification, createTemplate, updateTemplate, deleteTemplate, createSchedule, updateSchedule, deleteSchedule } = useNotificationHelpers()
-
-  // OneSignal hook
-  const { permission, requestPermission } = useOneSignal()
 
   // Web-push hook
   const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush()
