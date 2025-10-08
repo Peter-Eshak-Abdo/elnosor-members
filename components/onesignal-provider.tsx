@@ -46,7 +46,7 @@ export function OneSignalProvider() {
               enable: false,
             },
             allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
-            serviceWorkerPath: '/OneSignalSDKWorker.js',
+            serviceWorkerPath: window.location.origin + '/OneSignalSDKWorker.js',
             serviceWorkerParam: { scope: '/' },
           });
 
