@@ -50,6 +50,29 @@ import {
 
 import { useWebPush } from "@/hooks/use-web-push"
 
+const useOneSignal = () => {
+  const [permission, setPermission] = useState<NotificationPermission>('default')
+
+  useEffect(() => {
+    const checkPermission = () => {
+      if (typeof window !== 'undefined' && (window as any).oneSignalPermission) {
+        setPermission((window as any).oneSignalPermission)
+      }
+    }
+    checkPermission()
+    const interval = setInterval(checkPermission, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const requestPermission = () => {
+    if (typeof window !== 'undefined' && (window as any).requestOneSignalPermission) {
+      (window as any).requestOneSignalPermission()
+    }
+  }
+
+  return { permission, requestPermission }
+}
+
 export default function NotificationsPage() {
   const { role, user } = useAuth()
   const router = useRouter()
@@ -61,16 +84,19 @@ export default function NotificationsPage() {
   const { quotes: dailyQuotes, loading: quotesLoading, error: quotesError } = useDailyQuotes()
   const { createNotification, updateNotification, deleteNotification, createTemplate, updateTemplate, deleteTemplate, createSchedule, updateSchedule, deleteSchedule } = useNotificationHelpers()
 
+  // OneSignal hook
+  const { permission, requestPermission } = useOneSignal()
+
   // Web-push hook
   const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush()
 
-  // Request web push permission if not granted
+  // Request OneSignal permission if not granted
   useEffect(() => {
-    if (webPushPermission !== "granted") {
+    if (permission !== "granted") {
       // Request permission
-      requestWebPushPermission()
+      requestPermission()
     }
-  }, [webPushPermission, requestWebPushPermission])
+  }, [permission, requestPermission])
 
   const loading = notificationsLoading || templatesLoading || schedulesLoading || quotesLoading
 
@@ -584,7 +610,7 @@ export default function NotificationsPage() {
 
         <TabsContent value="notifications" className="space-y-6">
           {/* Push Notification Permission Banner */}
-          {webPushPermission !== "granted" && (
+          {permission !== "granted" && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -600,7 +626,7 @@ export default function NotificationsPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={requestWebPushPermission} variant="outline" size="sm">
+                <Button onClick={requestPermission} variant="outline" size="sm">
                   تفعيل
                 </Button>
               </div>
