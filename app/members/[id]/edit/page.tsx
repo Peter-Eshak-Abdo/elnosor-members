@@ -284,18 +284,6 @@ export default function MemberEditPage() {
 
         <div>
           <Label>صورة الملف الشخصي</Label>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              // Trigger file input or something, but since ImageUpload handles it, perhaps just label
-              const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-              if (input) input.click();
-            }}
-            className="mb-2"
-          >
-            اختر صورة جديدة
-          </Button>
           <ImageUpload
             onUpload={function (url: string): void {
               setUploadedPhotoUrl(url)
@@ -303,6 +291,7 @@ export default function MemberEditPage() {
             currentImage={uploadedPhotoUrl || memberData?.photoUrl}
             uploadType="member"
             entityId={params.id as string}
+            showSourceSelector={true}
           />
         </div>
 

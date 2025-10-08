@@ -1,0 +1,43 @@
+شرح ملفات scripts
+إليك شرح مختصر لكل ملف في مجلد scripts/ ووظيفته الرئيسية:
+
+birthday-notifications.ts: يرسل إشعارات عيد الميلاد للأعضاء الذين يحتفلون بعيدهم اليوم. ينشئ إشعارات في Firestore ويرسل إشعارات push عبر OneSignal وweb-push.
+
+generate-meetings.ts: يولد بيانات اجتماعات الجمعة الأسبوعية للأشهر الثلاثة القادمة. يعرض البيانات بتنسيق JSON للنسخ واللصق في Firebase.
+
+migrate-admins.ts: ينقل المستخدمين الذين لديهم دور 'admin' من مجموعة 'users' إلى مجموعة 'admins' المنفصلة. إذا كانوا في 'members'، ينقلهم ويحذفهم من هناك.
+
+migrate-attendance-codes-fixed.ts: يهاجر رموز الحضور للأعضاء، مضمناً أن تكون رموز 4 أرقام صحيحة تبدأ من 1000.
+
+migrate-attendance-codes.ts: مشابه للـ fixed، لكن يستخدم إعدادات Firebase مختلفة.
+
+migration-utils.ts: دوال مساعدة لنقل عضو إلى admin أو admin إلى عضو بين المجموعات.
+
+notification-scheduler.ts: يرسل الإشعارات المجدولة، وينشئ إشعارات للمنشورات والتعليقات الجديدة.
+
+seed-meetings.js: يزرع اجتماعات الجمعة للسنة القادمة (12 شهر) في Firestore.
+
+seed-members.js: يزرع أعضاء عينة في Firestore.
+
+seed-quotes.js: يزرع اقتباسات يومية للشباب والآباء في Firestore.
+
+set-admin.js: يضبط دور مستخدم معين إلى admin باستخدام UID، محدث Auth custom claims والمجموعة users.
+
+set-admin-role.js: يضبط عدة مستخدمين كـ admins باستخدام UIDs محددة مسبقاً، محدث Auth والمجموعة members.
+
+setup-env.ts: يقرأ ملف service account JSON ويخرج FIREBASE_SERVICE_ACCOUNT_KEY للنسخ إلى .env.local.
+
+الإجابة على سؤالك حول ترقية مستخدم إلى admin
+لترقية شخص إلى admin، لديك عدة خيارات حسب النظام:
+
+إذا كنت تريد ترقية فردية عبر الـ UID: استخدم npx tsx scripts/set-admin.js <UID> - هذا يضبط الدور في Firebase Auth custom claims والمجموعة users. هذا هو الطريقة الأساسية للترقية لأن النظام يعتمد على custom claims للتحكم في الصلاحيات.
+
+إذا كان هناك واجهة UI: استخدم API route /api/admin/promote الذي يستدعي promoteUserToAdmin، والذي ينقل البيانات من members إلى admins collection.
+
+لا تستخدم migrate-admins.ts إلا إذا كنت تريد نقل admins موجودين بالفعل إلى مجموعة admins المنفصلة (مثل في حالة ترقية النظام).
+
+الطريقة الأكثر أماناً هي استخدام set-admin.js مع UID المستخدم، ثم يحتاج المستخدم إلى تسجيل الخروج وإعادة تسجيل الدخول لتفعيل التغييرات.
+
+
+Start New Task
+

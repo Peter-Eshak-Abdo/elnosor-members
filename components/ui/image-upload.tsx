@@ -265,7 +265,7 @@ export function ImageUpload({
         ref={cameraInputRef}
         type="file"
         accept={accept}
-        // capture="environment"
+        capture="environment"
         onChange={handleFileInput}
         className="hidden"
         disabled={uploading}
