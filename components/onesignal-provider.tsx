@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/app/providers'
 import { useWebPush } from '@/hooks/use-web-push'
+import toast from 'react-hot-toast'
 
 declare global {
   interface Window {
@@ -53,7 +54,7 @@ export function OneSignalProvider() {
           console.log('OneSignal initialized');
 
           // Set current permission to global
-          (window as any).oneSignalPermission = OneSignal.Notifications.permission;
+          (window as any).oneSignalPermission = Notification.permission;
 
           // Handle notification received (foreground)
           OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
@@ -79,37 +80,44 @@ export function OneSignalProvider() {
   }, []);
 
   const requestPermission = async () => {
-    if (typeof window !== 'undefined' && window.OneSignalDeferred) {
-      // Wait for OneSignal to be ready
-      const OneSignal = await new Promise<OneSignalSDK>((resolve) => {
-        if (window.OneSignal) {
-          resolve(window.OneSignal);
-        } else {
-          window.OneSignalDeferred!.push((OneSignal: OneSignalSDK) => resolve(OneSignal));
-        }
-      });
+    if (typeof window !== 'undefined') {
       try {
-        const perm = await OneSignal.Notifications.requestPermission();
-        (window as any).oneSignalPermission = perm === 'granted' ? 'granted' : 'denied';
-        if (perm === 'granted' && user) {
-          const playerId = await OneSignal.User.getUserId();
-          if (playerId) {
-            const userSettingsRef = doc(db, 'user_settings', user.uid);
-            await updateDoc(userSettingsRef, {
-              oneSignalPlayerId: playerId,
-              notificationsEnabled: true,
+        const perm = await Notification.requestPermission();
+        (window as any).oneSignalPermission = perm;
+        if (perm === 'granted') {
+          toast.success('تم تفعيل الإشعارات');
+          // Wait for OneSignal to be ready to get playerId
+          if (window.OneSignalDeferred) {
+            const OneSignal = await new Promise<OneSignalSDK>((resolve) => {
+              if (window.OneSignal) {
+                resolve(window.OneSignal);
+              } else {
+                window.OneSignalDeferred!.push((OneSignal: OneSignalSDK) => resolve(OneSignal));
+              }
             });
-            console.log('OneSignal playerId saved:', playerId);
+            if (user) {
+              const playerId = await OneSignal.User.getUserId();
+              if (playerId) {
+                const userSettingsRef = doc(db, 'user_settings', user.uid);
+                await updateDoc(userSettingsRef, {
+                  oneSignalPlayerId: playerId,
+                  notificationsEnabled: true,
+                });
+                console.log('OneSignal playerId saved:', playerId);
 
-            // Request web push permission after OneSignal token
-            if (webPushPermission !== "granted") {
-              await requestWebPushPermission();
+                // Request web push permission after OneSignal token
+                if (webPushPermission !== "granted") {
+                  await requestWebPushPermission();
+                }
+              }
             }
           }
+        } else if (perm === 'denied') {
+          toast.error('الإشعارات محظورة, يرجى تفعيلها من إعدادات المتصفح');
         }
         return perm === 'granted';
       } catch (error) {
-        console.error('Error requesting OneSignal permission:', error);
+        console.error('Error requesting notification permission:', error);
         return false;
       }
     }
