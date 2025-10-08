@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/app/providers'
@@ -9,6 +9,7 @@ import { useWebPush } from '@/hooks/use-web-push'
 declare global {
   interface Window {
     OneSignalDeferred: Array<((OneSignalSDK: any) => void) | undefined> | undefined;
+    OneSignal: OneSignalSDK | undefined; // Add OneSignal to Window interface
   }
 }
 
@@ -22,6 +23,7 @@ interface OneSignalSDK {
     serviceWorkerParam?: { scope: string };
   }) => Promise<void>;
   Notifications: {
+    permission: NotificationPermission;
     requestPermission: () => Promise<string>;
     addEventListener: (event: string, callback: (event: any) => void) => void;
   };
@@ -33,9 +35,6 @@ interface OneSignalSDK {
 export function OneSignalProvider() {
   const { user } = useAuth();
   const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush();
-
-  const [oneSignal, setOneSignal] = useState<OneSignalSDK | null>(null);
-  const [permission, setPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -52,11 +51,9 @@ export function OneSignalProvider() {
           });
 
           console.log('OneSignal initialized');
-          setOneSignal(OneSignal);
 
-          // Check current permission
-          const currentPermission = await OneSignal.Notifications.requestPermission();
-          setPermission(currentPermission === 'granted' ? 'granted' : 'denied');
+          // Set current permission to global
+          (window as any).oneSignalPermission = OneSignal.Notifications.permission;
 
           // Handle notification received (foreground)
           OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
@@ -82,40 +79,49 @@ export function OneSignalProvider() {
   }, []);
 
   const requestPermission = async () => {
-    if (!oneSignal) return false;
-    try {
-      const perm = await oneSignal.Notifications.requestPermission();
-      setPermission(perm === 'granted' ? 'granted' : 'denied');
-      if (perm === 'granted' && user) {
-        const playerId = await oneSignal.User.getUserId();
-        if (playerId) {
-          const userSettingsRef = doc(db, 'user_settings', user.uid);
-          await updateDoc(userSettingsRef, {
-            oneSignalPlayerId: playerId,
-            notificationsEnabled: true,
-          });
-          console.log('OneSignal playerId saved:', playerId);
+    if (typeof window !== 'undefined' && window.OneSignalDeferred) {
+      // Wait for OneSignal to be ready
+      const OneSignal = await new Promise<OneSignalSDK>((resolve) => {
+        if (window.OneSignal) {
+          resolve(window.OneSignal);
+        } else {
+          window.OneSignalDeferred!.push((OneSignal: OneSignalSDK) => resolve(OneSignal));
+        }
+      });
+      try {
+        const perm = await OneSignal.Notifications.requestPermission();
+        (window as any).oneSignalPermission = perm === 'granted' ? 'granted' : 'denied';
+        if (perm === 'granted' && user) {
+          const playerId = await OneSignal.User.getUserId();
+          if (playerId) {
+            const userSettingsRef = doc(db, 'user_settings', user.uid);
+            await updateDoc(userSettingsRef, {
+              oneSignalPlayerId: playerId,
+              notificationsEnabled: true,
+            });
+            console.log('OneSignal playerId saved:', playerId);
 
-          // Request web push permission after OneSignal token
-          if (webPushPermission !== "granted") {
-            await requestWebPushPermission();
+            // Request web push permission after OneSignal token
+            if (webPushPermission !== "granted") {
+              await requestWebPushPermission();
+            }
           }
         }
+        return perm === 'granted';
+      } catch (error) {
+        console.error('Error requesting OneSignal permission:', error);
+        return false;
       }
-      return perm === 'granted';
-    } catch (error) {
-      console.error('Error requesting OneSignal permission:', error);
-      return false;
     }
+    return false;
   };
 
-  // Expose the permission and requestPermission to the context or global
+  // Expose the requestPermission to global
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).oneSignalPermission = permission;
       (window as any).requestOneSignalPermission = requestPermission;
     }
-  }, [permission, requestPermission]);
+  }, [requestPermission]);
 
   return null;
 }
