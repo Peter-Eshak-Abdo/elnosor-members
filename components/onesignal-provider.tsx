@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/app/providers'
+import { useWebPush } from '@/hooks/use-web-push'
 
 declare global {
   interface Window {
@@ -31,6 +32,7 @@ interface OneSignalSDK {
 
 export function OneSignalProvider() {
   const { user } = useAuth();
+  const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -44,9 +46,8 @@ export function OneSignalProvider() {
               enable: false,
             },
             allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
-            // Removed serviceWorkerPath and serviceWorkerParam to fix service worker registration issue
-            // serviceWorkerPath: '/OneSignalSDKWorker.js',
-            // serviceWorkerParam: { scope: '/' },
+            serviceWorkerPath: '/OneSignalSDKWorker.js',
+            serviceWorkerParam: { scope: '/' },
           });
 
           console.log('OneSignal initialized');
@@ -67,6 +68,11 @@ export function OneSignalProvider() {
                     notificationsEnabled: true,
                   });
                   console.log('OneSignal playerId saved in user_settings:', playerId);
+
+                  // Request web push permission after OneSignal token
+                  if (webPushPermission !== "granted") {
+                    await requestWebPushPermission();
+                  }
                 }
               } catch (error) {
                 console.error('Error saving OneSignal playerId:', error);

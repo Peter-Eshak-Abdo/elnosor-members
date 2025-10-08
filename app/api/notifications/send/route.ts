@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import webpush, { PushSubscription } from "web-push";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getMessaging } from "firebase-admin/messaging";
 
 const serviceAccount = JSON.parse(
   process.env.FIREBASE_SERVICE_ACCOUNT_KEY || "{}"
@@ -58,36 +57,6 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await response.json();
-
-    // Send FCM notifications if Firebase is configured
-    try {
-      const usersSnapshot = await db.collection("users").get();
-      const fcmTokens: string[] = [];
-      usersSnapshot.forEach((userDoc) => {
-        const userData = userDoc.data();
-        if (userData.fcmToken && userData.notificationsEnabled !== false) {
-          fcmTokens.push(userData.fcmToken);
-        }
-      });
-
-      if (fcmTokens.length > 0) {
-        const fcmMessage = {
-          notification: {
-            title,
-            body: message,
-          },
-          data: {
-            url: "/notifications",
-          },
-          tokens: fcmTokens,
-        };
-
-        const fcmResponse = await messaging.sendMulticast(fcmMessage);
-        console.log("FCM send result:", fcmResponse);
-      }
-    } catch (error) {
-      console.error("Error sending FCM notifications:", error);
-    }
 
     // Send web-push notifications if VAPID keys are configured
     if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {

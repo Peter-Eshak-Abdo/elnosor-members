@@ -37,7 +37,3 @@ setup-env.ts: يقرأ ملف service account JSON ويخرج FIREBASE_SERVICE_A
 لا تستخدم migrate-admins.ts إلا إذا كنت تريد نقل admins موجودين بالفعل إلى مجموعة admins المنفصلة (مثل في حالة ترقية النظام).
 
 الطريقة الأكثر أماناً هي استخدام set-admin.js مع UID المستخدم، ثم يحتاج المستخدم إلى تسجيل الخروج وإعادة تسجيل الدخول لتفعيل التغييرات.
-
-
-Start New Task
-

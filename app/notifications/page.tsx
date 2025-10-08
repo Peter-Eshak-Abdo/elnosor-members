@@ -47,7 +47,7 @@ import {
   useDailyQuotes,
   useNotificationHelpers,
 } from "@/hooks/use-notifications"
-import { useFCM } from "@/hooks/use-fcm"
+
 import { useWebPush } from "@/hooks/use-web-push"
 
 export default function NotificationsPage() {
@@ -61,19 +61,16 @@ export default function NotificationsPage() {
   const { quotes: dailyQuotes, loading: quotesLoading, error: quotesError } = useDailyQuotes()
   const { createNotification, updateNotification, deleteNotification, createTemplate, updateTemplate, deleteTemplate, createSchedule, updateSchedule, deleteSchedule } = useNotificationHelpers()
 
-  // FCM hook for push notifications
-  const { permission, requestPermission, disableNotifications, isSupported } = useFCM()
-
   // Web-push hook
   const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush()
 
-  // Consolidate permission requests to avoid duplicate prompts
+  // Request web push permission if not granted
   useEffect(() => {
-    if (permission !== "granted" && webPushPermission !== "granted") {
-      // Request permission once
-      requestPermission()
+    if (webPushPermission !== "granted") {
+      // Request permission
+      requestWebPushPermission()
     }
-  }, [permission, webPushPermission, requestPermission])
+  }, [webPushPermission, requestWebPushPermission])
 
   const loading = notificationsLoading || templatesLoading || schedulesLoading || quotesLoading
 
