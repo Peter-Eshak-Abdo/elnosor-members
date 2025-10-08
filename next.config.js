@@ -4,6 +4,7 @@ const withPWA = require("next-pwa")({
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   sw: "custom-sw.js", // Use custom service worker
+  exclude: [/OneSignalSDKWorker\.js$/],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/firestore\.googleapis\.com/,
