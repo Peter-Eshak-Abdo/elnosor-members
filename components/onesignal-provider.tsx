@@ -29,7 +29,9 @@ interface OneSignalSDK {
     addEventListener: (event: string, callback: (event: any) => void) => void;
   };
   User: {
-    getUserId: () => Promise<string | null>;
+    PushSubscription: {
+      id: string;
+    };
   };
 }
 
@@ -96,7 +98,7 @@ export function OneSignalProvider() {
               }
             });
             if (user) {
-              const playerId = await OneSignal.User.getUserId();
+              const playerId = OneSignal.User.PushSubscription.id;
               if (playerId) {
                 const userSettingsRef = doc(db, 'user_settings', user.uid);
                 await updateDoc(userSettingsRef, {

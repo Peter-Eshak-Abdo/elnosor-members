@@ -54,27 +54,6 @@ export default function NotificationsPage() {
   const { role, user } = useAuth()
   const router = useRouter()
 
-  // OneSignal permission state
-  const [permission, setPermission] = useState<NotificationPermission>('default')
-
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== 'undefined') {
-        const p = (window as any).oneSignalPermission
-        if (p) setPermission(p)
-      }
-    }
-    check()
-    const interval = setInterval(check, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const requestPermission = () => {
-    if (typeof window !== 'undefined') {
-      (window as any).requestOneSignalPermission?.()
-    }
-  }
-
   // Real-time data hooks
   const { notifications, loading: notificationsLoading, error: notificationsError } = useNotifications()
   const { templates, loading: templatesLoading, error: templatesError } = useNotificationTemplates()
@@ -85,13 +64,7 @@ export default function NotificationsPage() {
   // Web-push hook
   const { permission: webPushPermission, requestPermission: requestWebPushPermission } = useWebPush()
 
-  // Request OneSignal permission if not granted
-  useEffect(() => {
-    if (permission !== "granted") {
-      // Request permission
-      requestPermission()
-    }
-  }, [permission, requestPermission])
+
 
   const loading = notificationsLoading || templatesLoading || schedulesLoading || quotesLoading
 
@@ -605,7 +578,7 @@ export default function NotificationsPage() {
 
         <TabsContent value="notifications" className="space-y-6">
           {/* Push Notification Permission Banner */}
-          {permission !== "granted" && (
+          {webPushPermission !== "granted" && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -621,7 +594,7 @@ export default function NotificationsPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={requestPermission} variant="outline" size="sm">
+                <Button onClick={requestWebPushPermission} variant="outline" size="sm">
                   تفعيل
                 </Button>
               </div>

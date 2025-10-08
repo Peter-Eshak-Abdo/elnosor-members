@@ -65,17 +65,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="rtl">
       <head>
-        <script
-          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-          defer
-        ></script>
       </head>
       <body className="font-arabic" suppressHydrationWarning={true}>
         <div className="background-blur" />
         <SplashWrapper>
           <HydrationSafe>
             <Providers>
-              <OneSignalProvider />
               <>
                 <Breadcrumbs />
                 {children}
