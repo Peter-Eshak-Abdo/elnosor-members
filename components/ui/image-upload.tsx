@@ -191,32 +191,36 @@ export function ImageUpload({
       if (!ctx) throw new Error('Canvas context not available')
 
       const image = imgRef.current
-      const scaleX = image.naturalWidth / image.width
-      const scaleY = image.naturalHeight / image.height
 
-      canvas.width = completedCrop.width * scaleX
-      canvas.height = completedCrop.height * scaleY
+      // Since crop unit is '%', convert to natural pixels
+      const naturalX = (completedCrop.x / 100) * image.naturalWidth
+      const naturalY = (completedCrop.y / 100) * image.naturalHeight
+      const naturalWidthCrop = (completedCrop.width / 100) * image.naturalWidth
+      const naturalHeightCrop = (completedCrop.height / 100) * image.naturalHeight
+
+      canvas.width = naturalWidthCrop
+      canvas.height = naturalHeightCrop
 
       ctx.drawImage(
         image,
-        completedCrop.x * scaleX,
-        completedCrop.y * scaleY,
-        completedCrop.width * scaleX,
-        completedCrop.height * scaleY,
+        naturalX,
+        naturalY,
+        naturalWidthCrop,
+        naturalHeightCrop,
         0,
         0,
-        canvas.width,
-        canvas.height
+        naturalWidthCrop,
+        naturalHeightCrop
       )
 
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((blob) => {
           if (blob) resolve(blob)
           else reject(new Error('Failed to create blob'))
-        }, selectedFile.type)
+        }, 'image/jpeg')
       })
 
-      const croppedFile = new File([blob], selectedFile.name, { type: selectedFile.type })
+      const croppedFile = new File([blob], selectedFile.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })
 
       let imageUrl: string
 
@@ -396,11 +400,11 @@ export function ImageUpload({
       </AnimatePresence>
 
       <Dialog open={cropModalOpen} onOpenChange={setCropModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>قص الصورة</DialogTitle>
           </DialogHeader>
-          <div className="flex justify-center">
+          <div className="flex justify-center relative min-h-[300px]">
             {selectedFile && (
               <ReactCrop
                 crop={crop}
