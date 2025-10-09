@@ -119,9 +119,9 @@ export function ImageUpload({
     const crop = centerCrop(
       makeAspectCrop(
         {
-          unit: '%',
-          width: 80,
-          height: 80,
+          unit: 'px',
+          width: 200,
+          height: 200,
         },
         1, // aspect ratio 1:1 for square
         width,
